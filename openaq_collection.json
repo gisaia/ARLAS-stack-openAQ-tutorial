@@ -1,0 +1,8 @@
+{
+    "index_name": "openaq_index",
+    "id_path": "id",
+    "geometry_path": "station.geometry",
+    "centroid_path": "station.geometry",
+    "timestamp_path": "datapoint.timestamp",
+    "include_fields": "*"
+}

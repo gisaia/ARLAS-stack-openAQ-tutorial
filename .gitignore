@@ -1,0 +1,5 @@
+downloads
+lib
+logstash*
+data/transform*
+docker-compose.yaml
