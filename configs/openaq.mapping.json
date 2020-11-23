@@ -1,0 +1,88 @@
+{
+  "mappings": {
+    "dynamic": false,
+    "properties": {
+      "id": {
+        "type": "keyword",
+        "copy_to": "internal.fulltext"
+      },
+      "internal": {
+        "properties": {
+          "fulltext": {
+            "type": "text",
+            "fielddata": true
+          }
+        }
+      },
+      "datapoint": {
+        "properties": {
+          "timestamp": {
+            "type": "date",
+            "format": "yyyy-MM-dd"
+          },
+          "type": {
+            "type": "keyword",
+            "copy_to": "internal.fulltext"
+          },
+          "value": {
+            "type": "float"
+          },
+          "unit": {
+            "type": "keyword"
+          },
+          "bc": {
+            "type": "float"
+          },
+          "co": {
+            "type": "float"
+          },
+          "no2": {
+            "type": "float"
+          },
+          "o3": {
+            "type": "float"
+          },
+          "pm25": {
+            "type": "float"
+          },
+          "pm10": {
+            "type": "float"
+          },
+          "so2": {
+            "type": "float"
+          }
+        }
+      },
+      "station": {
+        "properties": {
+          "id": {
+            "type": "keyword"
+          },
+          "country": {
+            "type": "keyword",
+            "copy_to": "internal.fulltext"
+          },
+          "city": {
+            "type": "keyword",
+            "copy_to": "internal.fulltext"
+          },
+          "geometry": {
+            "type": "geo_point"
+          },
+          "location": {
+            "type": "keyword",
+            "copy_to": "internal.fulltext"
+          },
+          "name": {
+            "type": "keyword",
+            "copy_to": "internal.fulltext"
+          },
+          "type": {
+            "type": "keyword",
+            "copy_to": "internal.fulltext"
+          }
+        }
+      }
+    }
+  }
+}
