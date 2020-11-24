@@ -1,18 +1,12 @@
 {
   "mappings": {
-    "dynamic": false,
     "properties": {
       "id": {
         "type": "keyword",
-        "copy_to": "internal.fulltext"
-      },
-      "internal": {
-        "properties": {
-          "fulltext": {
-            "type": "text",
-            "fielddata": true
-          }
-        }
+        "copy_to": [
+          "internal.fulltext",
+          "internal.autocomplete"
+        ]
       },
       "datapoint": {
         "properties": {
@@ -22,7 +16,10 @@
           },
           "type": {
             "type": "keyword",
-            "copy_to": "internal.fulltext"
+            "copy_to": [
+              "internal.fulltext",
+              "internal.autocomplete"
+            ]
           },
           "value": {
             "type": "float"
@@ -60,29 +57,56 @@
           },
           "country": {
             "type": "keyword",
-            "copy_to": "internal.fulltext"
+            "copy_to": [
+              "internal.fulltext",
+              "internal.autocomplete"
+            ]
           },
           "city": {
             "type": "keyword",
-            "copy_to": "internal.fulltext"
+            "copy_to": [
+              "internal.fulltext",
+              "internal.autocomplete"
+            ]
           },
           "geometry": {
             "type": "geo_point"
           },
           "location": {
             "type": "keyword",
-            "copy_to": "internal.fulltext"
+            "copy_to": [
+              "internal.fulltext",
+              "internal.autocomplete"
+            ]
           },
           "name": {
             "type": "keyword",
-            "copy_to": "internal.fulltext"
+            "copy_to": [
+              "internal.fulltext",
+              "internal.autocomplete"
+            ]
           },
           "type": {
             "type": "keyword",
-            "copy_to": "internal.fulltext"
+            "copy_to": [
+              "internal.fulltext",
+              "internal.autocomplete"
+            ]
+          }
+        }
+      },
+      "internal": {
+        "properties": {
+          "fulltext": {
+            "type": "text",
+            "fielddata": true
+          },
+          "autocomplete": {
+            "type": "keyword"
           }
         }
       }
-    }
+    },
+    "dynamic": false  
   }
 }
