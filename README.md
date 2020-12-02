@@ -92,7 +92,7 @@ __1. Starting ARLAS Exploration Stack__
 
 ```shell
 curl -XGET \
-    "https://raw.githubusercontent.com/gisaia/ARLAS-Exploration-stack/blob/develop/docker-compose.yaml" \
+    "https://raw.githubusercontent.com/gisaia/ARLAS-Exploration-stack/develop/docker-compose-withoutnginx.yaml" \
     -o docker-compose.yaml
 
 ```
