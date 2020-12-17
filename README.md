@@ -79,53 +79,53 @@ For example, a line of the line-json file looks like:
 
 Let's explore where these stations are located and what the pollution levels are in different parts of the world. For this we will use ARLAS.
 
-__0. Download the tutorial__
+__0. Setup__
+
+- Create a repository dedicated to this tutorial
 
 ```shell
-git clone https://github.com/gisaia/ARLAS-stack-openAQ-tutorial.git
+mkdir ARLAS-stack-openaq-tutorial
+cd ARLAS-stack-openaq-tutorial
 
 ```
+
+- Download the openAq data
+
+    ```shell
+    curl -L -O "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/data/openaq_data.ndjson"
+
+    ```
+
+    Check that `openaq_data.ndjson` file is downloaded
+
+    ```shell
+    ls -l openaq_data.ndjson
+
+    ```
+
+- Download the ARLAS-Exploration-stack project and unzip it
+
+```shell
+(curl -L -O "https://github.com/gisaia/ARLAS-Exploration-stack/archive/develop.zip"; unzip develop.zip)
+
+```
+
+Check that the `ARLAS-Exploration-stack-develop` stack is downloaded
+
+```shell
+ls -l ARLAS-Exploration-stack-develop
+
+```
+
+Now our tutorial environment is set up.
+
 
 __1. Starting ARLAS Exploration Stack__
 
-- Get the docker-compose file from [ARLAS-Exploration-stack](https://github.com/gisaia/ARLAS-Exploration-stack.git) that will allow us to start the ARLAS stack
-
 ```shell
-curl -XGET \
-    "https://raw.githubusercontent.com/gisaia/ARLAS-Exploration-stack/develop/docker-compose-withoutnginx.yaml" \
-    -o docker-compose.yaml
+./ARLAS-Exploration-stack-develop/start.sh
 
 ```
-
-- Start the ARLAS stack 
-
-```shell
-docker-compose up -d \
-    arlas-wui \
-    arlas-hub \
-    arlas-builder \
-    arlas-server \
-    arlas-persistence-server \
-    elasticsearch
-
-```
-
-6 services are started:
-
-- ARLAS-wui at http://localhost:8096
-- ARLAS-wui-builder at http://localhost:8095
-- ARLAS-wui-hub at http://localhost:8094
-- ARLAS-server at http://localhost:19999/arlas/swagger
-- ARLAS-persistence at http://localhost:19997/arlas-persistence-server/swagger
-- Elasticsearch at http://localhost:9200
-
-Check that the 6 services are up and running using the following command: 
-
-```shell
-docker ps
-
-```
-ARLAS stack is up and running, we need now to index openAq data in Elasticsearch
 
 __2. Indexing opanAQ data in Elasticsearch__
 
@@ -191,16 +191,17 @@ You notice that we split the document into two objects.
 
 Now we will create an index in Elasticsearch that will host our downloaded pollution data. 
 
-- Create `openaq_index` index  with `configs/openaq.mapping.json` mapping file
+- Create `openaq_index` index  with `openaq.mapping.json` mapping file
 
-```shell
-curl -XPUT http://localhost:9200/openaq_index/?pretty \
--d @configs/openaq.mapping.json \
--H 'Content-Type: application/json'
+    ```shell
+    curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/configs/openaq.mapping.json" | \
+    curl -XPUT "http://localhost:9200/openaq_index/?pretty" \
+        -d @- \
+        -H 'Content-Type: application/json'
 
-```
+    ```
 
-The `configs/openaq.mapping.json` mapping file declares to Elasticsearch our data model.
+The `openaq.mapping.json` mapping file declares to Elasticsearch our data model.
 
 You can check that the index is successfuly created by running the following command
 
@@ -217,15 +218,21 @@ curl -XGET http://localhost:9200/openaq_index/_mapping?pretty
         ( wget https://artifacts.elastic.co/downloads/logstash/logstash-7.4.2.tar.gz ; tar -xzf logstash-7.4.2.tar.gz )
 
         ```
-    - Now we will use Logstash in order to apply the data model transformation we described earlier and to index data in Elasticsearch:
+    - Logstash needs a configuration file (`openaq2es.logstash.conf`) that indicates how to to apply the data model transformation we described earlier on the `openaq_data.ndjson` file and to index data in Elasticsearch.
+
+        ```shell
+        curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/configs/openaq2es.logstash.conf" \
+            -o openaq2es.logstash.conf
+        ```
+
+    - Now we will use Logstash in order to apply the data model transformation and to index data in Elasticsearch given the `openaq2es.logstash.conf` configuration file :
 
         ```shell
         cat data/openaq_data.ndjson \
         | ./logstash-7.4.2/bin/logstash \
-        -f configs/openaq2es.logstash.conf
+        -f openaq2es.logstash.conf
 
         ```
-        `configs/openaq2es.logstash.conf` is the file used to describe the data model transformation
 
     - Check if __313 291__ pollutant measurementsare indexed:
 
@@ -247,11 +254,12 @@ The collection references an identifier, a timestamp, and geographical fields wh
 - Create a openaq collection in ARLAS
 
     ```shell
+    curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/openaq_collection.json" | \
     curl -X PUT \
-    --header 'Content-Type: application/json;charset=utf-8' \
-    --header 'Accept: application/json' \
-    "http://localhost:19999/arlas/collections/openaq_collection?pretty=true" \
-    --data @openaq_collection.json
+        --header 'Content-Type: application/json;charset=utf-8' \
+        --header 'Accept: application/json' \
+        "http://localhost:19999/arlas/collections/openaq_collection?pretty=true" \
+        --data @-
     ```
 
     Check that the collection is created using the ARLAS-server `collections/{collection}`
