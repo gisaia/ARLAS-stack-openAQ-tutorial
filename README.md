@@ -228,7 +228,7 @@ curl -XGET http://localhost:9200/openaq_index/_mapping?pretty
     - Now we will use Logstash in order to apply the data model transformation and to index data in Elasticsearch given the `openaq2es.logstash.conf` configuration file :
 
         ```shell
-        cat data/openaq_data.ndjson \
+        cat openaq_data.ndjson \
         | ./logstash-7.4.2/bin/logstash \
         -f openaq2es.logstash.conf
 
