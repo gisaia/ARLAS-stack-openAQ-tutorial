@@ -5,6 +5,7 @@
 ### What will you learn ?
 
 With this tutorial, you'll be able to:
+
 - start an ARLAS-Exploration stack
 - Index some air pollution data in [Elasticsearch](https://www.elastic.co/elasticsearch/)
 - Reference the indexed data in ARLAS
@@ -13,6 +14,7 @@ With this tutorial, you'll be able to:
 ### What will you need ?
 
 You will need :
+
 - docker & docker-compose
 - curl
 
@@ -77,7 +79,7 @@ For example, a line of the line-json file looks like:
 
 ## Exploring OpenAq data
 
-Let's explore where these stations are located and what the pollution levels are in different parts of the world. For this we will use ARLAS.
+Let's explore where these stations are located and what are the pollution levels in different parts of the world. For this we will use ARLAS.
 
 __0. Setup__
 
@@ -91,17 +93,17 @@ cd ARLAS-stack-openaq-tutorial
 
 - Download the openAq data
 
-    ```shell
-    curl -L -O "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/data/openaq_data.ndjson"
+```shell
+curl -L -O "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/data/openaq_data.ndjson"
 
-    ```
+```
 
-    Check that `openaq_data.ndjson` file is downloaded
+Check that `openaq_data.ndjson` file is downloaded
 
-    ```shell
-    ls -l openaq_data.ndjson
+```shell
+ls -l openaq_data.ndjson
 
-    ```
+```
 
 - Download the ARLAS-Exploration-stack project and unzip it
 
@@ -184,7 +186,7 @@ will be transformed to :
 
 You notice that we split the document into two objects.
 
-- `datapoint` object contains information about the pollutant measurement: which pollutant, what's the value of the measurement, what is the unit and when was it emitted. Also, notice that we added a key (`pm10` in this example) representing the pollutant, the value of this key is the measurement's value.
+- `datapoint` object contains information about the pollutant measurement: which pollutant, what's the value of the measurement, what is the unit and when was it emitted. Also, notice that we added a key (`pm10` in this example) representing the pollutant, the value of this key is the measurement's value. This restructuring of the data will allow us to obtain analytical views for each pollutant independently. For instance we will be able to analyse the average measures of `pm10` over time using a histogram. Without this adaptation, this representation wouldn't be possible.
 - `station` object contains information about the station itself: name, location, coordinates...
 
 ### Indexing openAq data with the new data model
@@ -193,13 +195,13 @@ Now we will create an index in Elasticsearch that will host our downloaded pollu
 
 - Create `openaq_index` index  with `openaq.mapping.json` mapping file
 
-    ```shell
-    curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/configs/openaq.mapping.json" | \
-    curl -XPUT "http://localhost:9200/openaq_index/?pretty" \
-        -d @- \
-        -H 'Content-Type: application/json'
+```shell
+curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/configs/openaq.mapping.json" | \
+curl -XPUT "http://localhost:9200/openaq_index/?pretty" \
+    -d @- \
+    -H 'Content-Type: application/json'
 
-    ```
+```
 
 The `openaq.mapping.json` mapping file declares to Elasticsearch our data model.
 
@@ -210,36 +212,37 @@ curl -XGET http://localhost:9200/openaq_index/_mapping?pretty
 
 ```
 
-- Index data that is in `openaq_data.ndjson` file in Elasticsearch
+- Index data that is in `openaq_data.ndjson` file in Elasticsearch. For that, we need Logstash as a data processing pipeline that ingests data in Elasticsearch. So we will download it and untar it:
 
-    - We need Logstash as a data processing pipeline that ingests data in Elasticsearch. So we will download it and untar it:
+```shell
+( wget https://artifacts.elastic.co/downloads/logstash/logstash-7.4.2.tar.gz ; tar -xzf logstash-7.4.2.tar.gz )
 
-        ```shell
-        ( wget https://artifacts.elastic.co/downloads/logstash/logstash-7.4.2.tar.gz ; tar -xzf logstash-7.4.2.tar.gz )
+```
 
-        ```
-    - Logstash needs a configuration file (`openaq2es.logstash.conf`) that indicates how to to apply the data model transformation we described earlier on the `openaq_data.ndjson` file and to index data in Elasticsearch.
+- Logstash needs a configuration file (`openaq2es.logstash.conf`) that indicates how to to apply the data model transformation we described earlier on the `openaq_data.ndjson` file and to index data in Elasticsearch.
 
-        ```shell
-        curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/configs/openaq2es.logstash.conf" \
-            -o openaq2es.logstash.conf
-        ```
+```shell
+curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/configs/openaq2es.logstash.conf" \
+    -o openaq2es.logstash.conf
 
-    - Now we will use Logstash in order to apply the data model transformation and to index data in Elasticsearch given the `openaq2es.logstash.conf` configuration file :
+```
 
-        ```shell
-        cat openaq_data.ndjson \
-        | ./logstash-7.4.2/bin/logstash \
-        -f openaq2es.logstash.conf
+- Now we will use Logstash in order to apply the data model transformation and to index data in Elasticsearch given the `openaq2es.logstash.conf` configuration file :
 
-        ```
+```shell
+cat openaq_data.ndjson \
+| ./logstash-7.4.2/bin/logstash \
+-f openaq2es.logstash.conf
 
-    - Check if __313 291__ pollutant measurementsare indexed:
+```
 
-        ```shell
-        curl -XGET http://localhost:9200/openaq_index/_count?pretty
+- Check if __313 291__ pollutant measurementsare indexed:
 
-        ```
+```shell
+curl -XGET http://localhost:9200/openaq_index/_count?pretty
+
+```
+
 __3. Declaring `openaq_index` in ARLAS__
 
 ARLAS-server interfaces with data indexed in Elasticsearch via a collection reference.
@@ -253,17 +256,19 @@ The collection references an identifier, a timestamp, and geographical fields wh
 
 - Create a openaq collection in ARLAS
 
-    ```shell
-    curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/openaq_collection.json" | \
-    curl -X PUT \
-        --header 'Content-Type: application/json;charset=utf-8' \
-        --header 'Accept: application/json' \
-        "http://localhost:19999/arlas/collections/openaq_collection?pretty=true" \
-        --data @-
-    ```
+```shell
+curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/openaq_collection.json" | \
+curl -X PUT \
+    --header 'Content-Type: application/json;charset=utf-8' \
+    --header 'Accept: application/json' \
+    "http://localhost:81/server/collections/openaq_collection?pretty=true" \
+    --data @-
 
-    Check that the collection is created using the ARLAS-server `collections/{collection}`
+```
 
-    ```
-    curl -X GET "http://localhost:19999/arlas/collections/openaq_collection?pretty=true"
-    ```
+Check that the collection is created using the ARLAS-server `collections/{collection}`
+
+```
+curl -X GET "http://localhost:81/server/collections/openaq_collection?pretty=true"
+
+```
