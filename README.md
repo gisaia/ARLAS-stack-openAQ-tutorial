@@ -212,28 +212,21 @@ curl -XGET http://localhost:9200/openaq_index/_mapping?pretty
 
 ```
 
-- Index data that is in `openaq_data.ndjson` file in Elasticsearch. For that, we need Logstash as a data processing pipeline that ingests data in Elasticsearch. So we will download it and untar it:
-
-```shell
-( wget https://artifacts.elastic.co/downloads/logstash/logstash-7.4.2.tar.gz ; tar -xzf logstash-7.4.2.tar.gz )
-
-```
-
-- Logstash needs a configuration file (`openaq2es.logstash.conf`) that indicates how to to apply the data model transformation we described earlier on the `openaq_data.ndjson` file and to index data in Elasticsearch.
+- Index data that is in `openaq_data.ndjson` file in Elasticsearch. For that, we need Logstash as a data processing pipeline that ingests data in Elasticsearch. Logstash needs a configuration file (`openaq2es.logstash.conf`) that indicates how to to apply the data model transformation we described earlier on the `openaq_data.ndjson` file and to index data in Elasticsearch.
 
 ```shell
 curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/master/configs/openaq2es.logstash.conf" \
     -o openaq2es.logstash.conf
-
 ```
 
-- Now we will use Logstash in order to apply the data model transformation and to index data in Elasticsearch given the `openaq2es.logstash.conf` configuration file :
+- Now we will use Logstash in order to apply the data model transformation and to index data in Elasticsearch given the `openaq2es.logstash.conf` configuration file with the docker image `docker.elastic.co/logstash/logstash` :
 
 ```shell
-cat openaq_data.ndjson \
-| ./logstash-7.4.2/bin/logstash \
--f openaq2es.logstash.conf
-
+cat openaq_data.ndjson | docker run -e XPACK_MONITORING_ENABLED=false \
+    --net arlas-exploration-stack-develop_esnet \
+    --env ELASTICSEARCH=elasticsearch:9200  \
+    --env INDEXNAME=openaq_index --rm -i \
+    -v ${PWD}/openaq2es.logstash.conf:/usr/share/logstash/pipeline/logstash.conf docker.elastic.co/logstash/logstash:7.11.2
 ```
 
 - Check if __313 291__ pollutant measurementsare indexed:
