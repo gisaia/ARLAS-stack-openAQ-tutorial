@@ -222,8 +222,10 @@ curl "https://raw.githubusercontent.com/gisaia/ARLAS-stack-openAQ-tutorial/maste
 - Now we will use Logstash in order to apply the data model transformation and to index data in Elasticsearch given the `openaq2es.logstash.conf` configuration file with the docker image `docker.elastic.co/logstash/logstash` :
 
 ```shell
+network=$(docker network ls --format "table {{.Name}}" | grep arlas)
+
 cat openaq_data.ndjson | docker run -e XPACK_MONITORING_ENABLED=false \
-    --net arlas-exploration-stack-develop_esnet \
+    --net ${network} \
     --env ELASTICSEARCH=elasticsearch:9200  \
     --env INDEXNAME=openaq_index --rm -i \
     -v ${PWD}/openaq2es.logstash.conf:/usr/share/logstash/pipeline/logstash.conf docker.elastic.co/logstash/logstash:7.11.2
